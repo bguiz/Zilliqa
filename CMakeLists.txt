@@ -4,9 +4,43 @@ project (nuQoin)
 message(STATUS "We are on a ${CMAKE_SYSTEM_NAME} system")
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    # openssl
     SET (MAC_OPENSSL_ROOT_DIR "/usr/local/opt/openssl" )
-    SET (MAC_CXX_FLAGS "-I${MAC_OPENSSL_ROOT_DIR}/include" )
-    SET (MAC_LINKER_FLAGS "-L${MAC_OPENSSL_ROOT_DIR}/lib" )
+
+    # level db
+    message(STATUS "leveldb depedency check")
+    find_path(LEVELDB_INCLUDE
+        NAMES leveldb/db.h
+        PATHS $ENV{LEVELDB_ROOT}/include /opt/local/include /usr/local/include /usr/include
+        DOC "leveldb include path" )
+    find_library(LEVELDB_LIBRARY
+        NAMES libleveldb.a libleveldb.dylib
+        PATHS /usr/lib /usr/local/lib $ENV{LEVELDB_ROOT}/lib
+        DOC "leveldb library path" )
+    if(LEVELDB_INCLUDE AND LEVELDB_LIBRARY)
+        message(STATUS "leveldb detected -I${LEVELDB_INCLUDE} -L${LEVELDB_LIBRARY})")
+    else()
+        message(WARNING "leveldb not detected")
+    endif()
+
+    # jsoncpp
+    message(STATUS "jsoncpp depedency check")
+    find_path(JSONCPP_INCLUDE
+        NAMES json/json.h
+        PATHS $ENV{JSONCPP_ROOT}/include /opt/local/include /usr/local/include /usr/include
+        DOC "jsoncpp include path" )
+    find_library(JSONCPP_LIBRARY
+        NAMES libjsoncpp.a libjsoncpp.dylib
+        PATHS /usr/lib /usr/local/lib $ENV{JSONCPP_ROOT}/lib
+        DOC "jsoncpp library path" )
+    if(JSONCPP_INCLUDE AND JSONCPP_LIBRARY)
+        message(STATUS "jsoncpp detected -I${JSONCPP_INCLUDE} -L${JSONCPP_LIBRARY})")
+    else()
+        message(WARNING "jsoncpp not detected")
+    endif()
+
+    SET (MAC_CXX_FLAGS "-I${MAC_OPENSSL_ROOT_DIR}/include -I${LEVELDB_INCLUDE} -I${JSONCPP_INCLUDE}" )
+    SET (MAC_LINKER_FLAGS "-L${MAC_OPENSSL_ROOT_DIR}/lib -L${LEVELDB_LIBRARY} -L${JSONCPP_LIBRARY}" )
 endif()
 
 if(IS_LOOKUP_NODE)
